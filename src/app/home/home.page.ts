@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { AlertController, ToastController } from '@ionic/angular';
+import { AlertController, ToastController, ActionSheetController } from '@ionic/angular';
 
 @Component({
   selector: 'app-home',
@@ -12,8 +12,17 @@ export class HomePage {
 
   constructor(
               private alertCtrl: AlertController,
-              private toastCtrl: ToastController
-            ) {}
+              private toastCtrl: ToastController,
+              private actionSheetCtrl: ActionSheetController
+            ) {
+
+              //recuperando dados no localstorege
+              let task_app_db = localStorage.getItem('task_app_db');
+              if(task_app_db != null){
+                this.list_task = JSON.parse(task_app_db);
+              }
+
+            }
 
   async showAdd(){
 
@@ -69,6 +78,39 @@ export class HomePage {
   updateLocaStorage(){
 
     localStorage.setItem('task_app_db',JSON.stringify(this.list_task));
+  }
+
+  async openActions(task){
+
+    const actionSheet = await this.actionSheetCtrl.create({
+      header: 'O que deseja fazer ?',
+      buttons: [{
+        text: task.done ? 'Desmarcar':'Marcar',
+        icon: task.done ? 'radio-button-off' : 'checkmark-circle',
+        handler: () => {
+          task.done = !task.done;
+          this.updateLocaStorage();
+        }
+      }, {
+        text: 'Cancel',
+        icon: 'close',
+        role: 'cancel',
+        handler: () => {
+          console.log('Cancel clicked');
+        }
+      }]
+    });
+    await actionSheet.present();
+  }
+
+  delete(task:any){
+
+    //semelhante a funcao map, esta fazendo um loop no array 'list_task' e
+    //vai manter no array todos as task que forem diferente da task passada 
+    //no parametro da funcao.
+    this.list_task = this.list_task.filter(taskArray => task != taskArray);
+    this.updateLocaStorage();
+
   }
 
 }
